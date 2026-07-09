@@ -6,9 +6,9 @@ function App() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
-  const [user, setUser] = useState<any>(null)
+  const [user, setUser] = useState(null)
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleLogin = async (e) => {
     e.preventDefault()
     setLoading(true)
     const { data, error } = await supabase.auth.signInWithPassword({ email, password })
