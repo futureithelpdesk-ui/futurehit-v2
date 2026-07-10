@@ -48,10 +48,11 @@
             color: white;
             font-size: 1rem;
             margin: 10px 0;
+            resize: vertical;
         }
         button {
             width: 100%;
-            padding: 12px;
+            padding: 14px;
             margin: 8px 0;
             border: none;
             border-radius: 4px;
@@ -59,6 +60,10 @@
             cursor: pointer;
             font-weight: bold;
             color: white;
+            transition: opacity 0.2s;
+        }
+        button:hover {
+            opacity: 0.85;
         }
         .btn-notif {
             background: #4285F4;
@@ -66,14 +71,15 @@
         .btn-send {
             background: #ff3333;
         }
-        button:hover {
-            opacity: 0.8;
+        .btn-test {
+            background: #34a853;
         }
         #status {
             padding: 12px;
             margin: 10px 0;
             border-radius: 4px;
             font-weight: bold;
+            font-size: 0.95rem;
         }
         .green {
             background: rgba(0, 255, 0, 0.15);
@@ -94,8 +100,14 @@
         }
         #log {
             margin-top: 15px;
-            font-size: 0.85rem;
+            font-size: 0.9rem;
             color: #aaa;
+            min-height: 30px;
+        }
+        .counter {
+            font-size: 0.8rem;
+            color: #666;
+            margin: 5px 0;
         }
     </style>
 </head>
@@ -108,6 +120,7 @@
         <div id="status" class="yellow">🔔 Click "Enable Notifications"</div>
 
         <button id="enableBtn" class="btn-notif">🔔 Enable Notifications</button>
+        <button id="testBtn" class="btn-test" style="display:none;">🔊 Test Notification</button>
 
         <textarea id="msgInput" placeholder="Type your broadcast message..."></textarea>
 
@@ -122,6 +135,7 @@
         // ---------- DOM ----------
         const statusDiv = document.getElementById('status');
         const enableBtn = document.getElementById('enableBtn');
+        const testBtn = document.getElementById('testBtn');
         const sendBtn = document.getElementById('sendBtn');
         const msgInput = document.getElementById('msgInput');
         const logDiv = document.getElementById('log');
@@ -129,88 +143,130 @@
         // ---------- UPDATE STATUS ----------
         function updateStatus() {
             if (!('Notification' in window)) {
-                statusDiv.textContent = '❌ Notifications not supported';
+                statusDiv.textContent = '❌ Notifications not supported in this browser';
                 statusDiv.className = 'red';
                 enableBtn.style.display = 'none';
+                testBtn.style.display = 'none';
                 return;
             }
 
-            if (Notification.permission === 'granted') {
-                statusDiv.textContent = '✅ Notifications ENABLED!';
+            const perm = Notification.permission;
+
+            if (perm === 'granted') {
+                statusDiv.textContent = '✅ Notifications ENABLED! Ready to broadcast.';
                 statusDiv.className = 'green';
                 enableBtn.style.display = 'none';
-            } else if (Notification.permission === 'denied') {
-                statusDiv.textContent = '❌ Notifications BLOCKED. Enable from browser settings.';
+                testBtn.style.display = 'block';
+                logDiv.textContent = '✅ Notification permission granted. You can send broadcasts.';
+            } else if (perm === 'denied') {
+                statusDiv.textContent = '❌ Notifications BLOCKED. Please enable from browser settings.';
                 statusDiv.className = 'red';
                 enableBtn.style.display = 'none';
+                testBtn.style.display = 'none';
+                logDiv.textContent = '❌ Go to browser settings → Privacy → Notifications → Allow this site.';
             } else {
-                statusDiv.textContent = '🔔 Click "Enable Notifications" to start.';
+                statusDiv.textContent = '🔔 Click "Enable Notifications" to start receiving alerts.';
                 statusDiv.className = 'yellow';
                 enableBtn.style.display = 'block';
+                testBtn.style.display = 'none';
+                logDiv.textContent = '';
             }
         }
 
-        // ---------- ENABLE ----------
+        // ---------- ENABLE NOTIFICATIONS ----------
         enableBtn.addEventListener('click', async () => {
             try {
-                const p = await Notification.requestPermission();
-                if (p === 'granted') {
+                logDiv.textContent = '⏳ Asking for permission...';
+                const permission = await Notification.requestPermission();
+
+                if (permission === 'granted') {
                     statusDiv.textContent = '✅ Notifications ENABLED!';
                     statusDiv.className = 'green';
                     enableBtn.style.display = 'none';
+                    testBtn.style.display = 'block';
+
+                    // Send welcome notification
                     new Notification('🔥 FUTURE HELPDESK', {
-                        body: 'You will now receive broadcasts!',
-                        icon: '/favicon.ico'
+                        body: 'Notifications are now enabled! You will receive broadcasts.',
+                        icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">🔥</text></svg>'
                     });
-                    logDiv.textContent = '✅ Test notification sent! Check your screen.';
+
+                    logDiv.textContent = '✅ Notifications enabled! Test notification sent.';
                 } else {
-                    statusDiv.textContent = '❌ Permission denied.';
+                    statusDiv.textContent = '❌ Permission denied. Please allow from browser settings.';
                     statusDiv.className = 'red';
+                    logDiv.textContent = '❌ You denied permission. Enable manually from browser settings.';
                 }
-            } catch (e) {
-                statusDiv.textContent = '❌ Error: ' + e.message;
+            } catch (error) {
+                logDiv.textContent = '❌ Error: ' + error.message;
+                statusDiv.textContent = '❌ Error enabling notifications';
                 statusDiv.className = 'red';
             }
         });
 
-        // ---------- SEND ----------
+        // ---------- TEST NOTIFICATION ----------
+        testBtn.addEventListener('click', () => {
+            try {
+                new Notification('🔊 FUTURE HELPDESK TEST', {
+                    body: 'This is a test notification! If you see this, it works!',
+                    icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">🔥</text></svg>'
+                });
+                logDiv.textContent = '✅ Test notification sent! Check your screen.';
+            } catch (error) {
+                logDiv.textContent = '❌ Error: ' + error.message;
+            }
+        });
+
+        // ---------- SEND BROADCAST ----------
         sendBtn.addEventListener('click', () => {
             const msg = msgInput.value.trim();
 
             if (!msg) {
-                logDiv.textContent = '❌ Please type a message first.';
+                logDiv.textContent = '❌ Please type a message first!';
                 return;
             }
 
             if (Notification.permission !== 'granted') {
-                logDiv.textContent = '❌ Please enable notifications first!';
+                logDiv.textContent = '❌ Please enable notifications first! Click "Enable Notifications" button.';
                 return;
             }
 
             try {
-                new Notification('📡 FUTURE HELPDESK', {
+                new Notification('📡 FUTURE HELPDESK BROADCAST', {
                     body: msg,
-                    icon: '/favicon.ico'
+                    icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">🔥</text></svg>'
                 });
+
                 logDiv.textContent = '✅ Broadcast sent successfully!';
                 msgInput.value = '';
-            } catch (e) {
-                logDiv.textContent = '❌ Error: ' + e.message;
+
+            } catch (error) {
+                logDiv.textContent = '❌ Error sending broadcast: ' + error.message;
             }
         });
 
-        // ---------- START ----------
+        // ---------- KEYBOARD SHORTCUT ----------
+        msgInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && e.ctrlKey) {
+                sendBtn.click();
+            }
+        });
+
+        // ---------- INIT ----------
         updateStatus();
 
-        // ---------- AUTO TEST ----------
+        // ---------- AUTO WELCOME NOTIFICATION (if already granted) ----------
         if (Notification.permission === 'granted') {
             setTimeout(() => {
                 new Notification('🔥 FUTURE HELPDESK', {
                     body: 'Welcome back! Ready to broadcast.',
-                    icon: '/favicon.ico'
+                    icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">🔥</text></svg>'
                 });
             }, 1500);
         }
+
+        console.log('🔥 FUTURE HELPDESK loaded!');
+        console.log('Notification permission:', Notification.permission);
     </script>
 
 </body>
