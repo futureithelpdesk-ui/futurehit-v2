@@ -8,61 +8,119 @@ body {
   background: #0a0a0f;
   color: #ffffff;
   font-family: Arial, sans-serif;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
 }
 
-.container {
-  text-align: center;
-  max-width: 400px;
-  width: 100%;
-  padding: 2rem;
-  border: 1px solid rgba(255, 51, 51, 0.3);
-  border-radius: 8px;
-  background: rgba(0,0,0,0.5);
+/* Cyberpunk utilities */
+.text-glow-red {
+  text-shadow: 0 0 20px rgba(239, 68, 68, 0.6);
 }
 
-h1 {
-  font-size: 2.5rem;
-  color: #ff3333;
-  text-shadow: 0 0 20px rgba(255, 51, 51, 0.5);
+.bg-grid {
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  background-size: 50px 50px;
 }
 
-p {
-  color: #888;
-  margin: 1rem 0;
+.cyber-border {
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  position: relative;
 }
 
-input {
-  width: 100%;
-  padding: 12px;
-  margin: 8px 0;
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.2);
-  border-radius: 4px;
-  color: white;
-  font-size: 1rem;
+.cyber-border::before {
+  content: "";
+  position: absolute;
+  top: -1px;
+  left: -1px;
+  width: 12px;
+  height: 12px;
+  border-top: 2px solid #ef4444;
+  border-left: 2px solid #ef4444;
 }
 
-button {
-  width: 100%;
-  padding: 12px;
-  margin: 8px 0;
-  background: #ff3333;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  font-size: 1rem;
-  cursor: pointer;
+.cyber-border::after {
+  content: "";
+  position: absolute;
+  bottom: -1px;
+  right: -1px;
+  width: 12px;
+  height: 12px;
+  border-bottom: 2px solid #ef4444;
+  border-right: 2px solid #ef4444;
 }
 
-button:hover {
-  background: #cc0000;
+.scanlines {
+  position: relative;
 }
 
-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+.scanlines::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(transparent 0px,
+      transparent 2px,
+      rgba(255, 255, 255, 0.03) 2px,
+      rgba(255, 255, 255, 0.03) 3px);
+}
+
+.glitch {
+  position: relative;
+  display: inline-block;
+}
+
+.glitch::before,
+.glitch::after {
+  content: attr(data-text);
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.glitch::before {
+  color: #ff2e3a;
+  transform: translate(2px, 0);
+  clip-path: polygon(0 0, 100% 0, 100% 45%, 0 45%);
+  animation: glitchA 3.6s infinite steps(1);
+}
+
+.glitch::after {
+  color: #2ea8ff;
+  transform: translate(-2px, 0);
+  clip-path: polygon(0 55%, 100% 55%, 100% 100%, 0 100%);
+  animation: glitchB 4.2s infinite steps(1);
+}
+
+@keyframes glitchA {
+  0%,
+  92%,
+  100% {
+    transform: translate(2px, 0);
+  }
+  93% {
+    transform: translate(6px, -2px);
+  }
+  95% {
+    transform: translate(-3px, 1px);
+  }
+  97% {
+    transform: translate(8px, 0);
+  }
+}
+
+@keyframes glitchB {
+  0%,
+  92%,
+  100% {
+    transform: translate(-2px, 0);
+  }
+  93% {
+    transform: translate(-6px, 2px);
+  }
+  95% {
+    transform: translate(3px, -1px);
+  }
+  97% {
+    transform: translate(-8px, 0);
+  }
 }
