@@ -1,12 +1,371 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FUTURE HELPDESK</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/sonner@2.0.7/dist/index.umd.min.js">
+    </script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background: #0a0a0f;
+            color: #ffffff;
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            flex-direction: column;
+        }
+        .container {
+            text-align: center;
+            max-width: 500px;
+            width: 100%;
+            padding: 2rem;
+            border: 1px solid rgba(255, 51, 51, 0.3);
+            border-radius: 8px;
+            background: rgba(0, 0, 0, 0.5);
+        }
+        h1 {
+            font-size: 2.5rem;
+            color: #ff3333;
+            text-shadow: 0 0 20px rgba(255, 51, 51, 0.5);
+        }
+        p {
+            color: #888;
+            margin: 1rem 0;
+        }
+        input {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            color: white;
+            font-size: 1rem;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            background: #ff3333;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 1rem;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        button.google-btn {
+            background: #4285F4;
+        }
+        button:hover {
+            opacity: 0.8;
+        }
+        .message {
+            margin-top: 15px;
+            color: #ffcc00;
+            font-size: 0.9rem;
+        }
+        .success {
+            color: #00ff00;
+        }
+        .user-area {
+            margin-top: 20px;
+            padding: 20px;
+            border-top: 1px solid #333;
+        }
+        .logout-btn {
+            background: #555;
+        }
+        .admin-panel {
+            margin-top: 20px;
+            border: 1px solid #ff3333;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        textarea {
+            width: 100%;
+            height: 100px;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            color: white;
+            font-size: 1rem;
+            margin: 10px 0;
+        }
+        .subscriber-item {
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 1px solid #222;
+            padding: 8px 0;
+            font-size: 0.9rem;
+        }
+        .subscriber-email {
+            color: #aaa;
+        }
+        .badge {
+            background: #ff3333;
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+        }
+        .note {
+            margin-top: 2rem;
+            font-size: 0.8rem;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container" id="app">
+        <h1>🔥 FUTURE HELPDESK</h1>
+        <p id="subtitle">Team Future is live!</p>
+
+        <!-- LOGIN SECTION -->
+        <div id="login-section">
+            <input type="email" id="email" placeholder="Email Address" required>
+            <input type="password" id="password" placeholder="Password" required>
+            <button id="loginBtn">Sign In</button>
+            <button id="googleBtn" class="google-btn">Sign in with Google</button>
+            <div id="loginMessage" class="message"></div>
+            <button id="showSignUpBtn" style="background:transparent;color:#888;font-size:0.8rem;margin-top:10px;">Don't have an account? Sign Up</button>
+        </div>
+
+        <!-- SIGNUP SECTION (Hidden) -->
+        <div id="signup-section" style="display:none;">
+            <input type="email" id="signupEmail" placeholder="Email Address" required>
+            <input type="password" id="signupPassword" placeholder="Password" required>
+            <button id="signupBtn">Create Account</button>
+            <div id="signupMessage" class="message"></div>
+            <button id="showLoginBtn" style="background:transparent;color:#888;font-size:0.8rem;margin-top:10px;">Already have an account? Sign In</button>
+        </div>
+
+        <!-- USER DASHBOARD (Hidden) -->
+        <div id="user-section" style="display:none;">
+            <div class="user-area">
+                <p>✅ Welcome, <span id="userEmail"></span>!</p>
+                <button id="logoutBtn" class="logout-btn">Logout</button>
+            </div>
+            <div id="admin-section" style="display:none;" class="admin-panel">
+                <h3>⚡ Admin Panel</h3>
+                <div style="margin:15px 0;">
+                    <h4>📡 Send Broadcast</h4>
+                    <textarea id="broadcastMessage" placeholder="Type your message..."></textarea>
+                    <button id="broadcastBtn">Send to All Subscribers</button>
+                    <div id="broadcastMessageDiv" class="message"></div>
+                </div>
+                <div>
+                    <h4>👥 Subscribers</h4>
+                    <div id="subscriberList"></div>
+                </div>
+            </div>
+        </div>
+        <div class="note">Secure Connection • Vercel + Supabase</div>
+    </div>
+
+    <script>
+        // ---------- 🔥 SUPABASE DETAILS ----------
+        const SUPABASE_URL = 'https://wrsctddishgwflfbnfcx.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indyc2N0ZGRpc2hnd2ZsZmJuZmN4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM1OTY0NTgsImV4cCI6MjA5OTE3MjQ1OH0.-r7Aha9CiPNC-r4ztqNnN3JVsQTdbupBnSuUPW_TKpg';
+
+        const { createClient } = supabase;
+        const _supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // DOM Elements
+        const loginSection = document.getElementById('login-section');
+        const signupSection = document.getElementById('signup-section');
+        const userSection = document.getElementById('user-section');
+        const adminSection = document.getElementById('admin-section');
+        const userEmailSpan = document.getElementById('userEmail');
+        const loginMessage = document.getElementById('loginMessage');
+        const signupMessage = document.getElementById('signupMessage');
+        const subscriberList = document.getElementById('subscriberList');
+        const broadcastMessageDiv = document.getElementById('broadcastMessageDiv');
+
+        const emailInput = document.getElementById('email');
+        const passwordInput = document.getElementById('password');
+        const loginBtn = document.getElementById('loginBtn');
+        const googleBtn = document.getElementById('googleBtn');
+        const logoutBtn = document.getElementById('logoutBtn');
+
+        const signupEmail = document.getElementById('signupEmail');
+        const signupPassword = document.getElementById('signupPassword');
+        const signupBtn = document.getElementById('signupBtn');
+        const showSignUpBtn = document.getElementById('showSignUpBtn');
+        const showLoginBtn = document.getElementById('showLoginBtn');
+
+        const broadcastMessage = document.getElementById('broadcastMessage');
+        const broadcastBtn = document.getElementById('broadcastBtn');
+
+        let currentUser = null;
+        let isAdmin = false;
+
+        // ---------- UI FUNCTIONS ----------
+        function showLoginForm() {
+            loginSection.style.display = 'block';
+            signupSection.style.display = 'none';
+            userSection.style.display = 'none';
+            loginMessage.textContent = '';
+        }
+
+        function showSignUpForm() {
+            loginSection.style.display = 'none';
+            signupSection.style.display = 'block';
+            userSection.style.display = 'none';
+            signupMessage.textContent = '';
+        }
+
+        function showUserDashboard(user) {
+            loginSection.style.display = 'none';
+            signupSection.style.display = 'none';
+            userSection.style.display = 'block';
+            userEmailSpan.textContent = user.email;
+            currentUser = user;
+            checkAdmin(user.id);
+        }
+
+        // ---------- CHECK ADMIN ----------
+        async function checkAdmin(userId) {
+            const { data, error } = await _supabase
+                .from('user_roles')
+                .select('role')
+                .eq('user_id', userId)
+                .eq('role', 'admin')
+                .single();
+
+            isAdmin = !!data;
+            if (isAdmin) {
+                adminSection.style.display = 'block';
+                fetchSubscribers();
+            } else {
+                adminSection.style.display = 'none';
+            }
+        }
+
+        // ---------- FETCH SUBSCRIBERS ----------
+        async function fetchSubscribers() {
+            const { data, error } = await _supabase
+                .from('subscribers')
+                .select('*')
+                .order('created_at', { ascending: false });
+
+            if (error) {
+                subscriberList.innerHTML = '<p style="color:red;">Failed to load subscribers</p>';
+                return;
+            }
+
+            if (!data || data.length === 0) {
+                subscriberList.innerHTML = '<p style="color:#555;">No subscribers yet.</p>';
+                return;
+            }
+
+            subscriberList.innerHTML = data.map(sub =>
+                `<div class="subscriber-item">
+                    <span>${sub.email || 'No email'}</span>
+                    <span class="subscriber-email">${sub.codename || 'Anonymous'} • ${sub.phone || 'No phone'}</span>
+                </div>`
+            ).join('');
+        }
+
+        // ---------- LOGIN ----------
+        loginBtn.addEventListener('click', async () => {
+            const email = emailInput.value;
+            const password = passwordInput.value;
+            if (!email || !password) {
+                loginMessage.textContent = '❌ Please fill in all fields.';
+                return;
+            }
+            loginMessage.textContent = '⏳ Logging in...';
+            const { data, error } = await _supabase.auth.signInWithPassword({ email, password });
+            if (error) {
+                loginMessage.textContent = '❌ ' + error.message;
+                return;
+            }
+            if (data.user) {
+                loginMessage.textContent = '✅ Welcome back!';
+                showUserDashboard(data.user);
+            }
+        });
+
+        // ---------- GOOGLE LOGIN ----------
+        googleBtn.addEventListener('click', async () => {
+            loginMessage.textContent = '⏳ Redirecting to Google...';
+            const { error } = await _supabase.auth.signInWithOAuth({
+                provider: 'google',
+                options: { redirectTo: window.location.origin }
+            });
+            if (error) {
+                loginMessage.textContent = '❌ ' + error.message;
+            }
+        });
+
+        // ---------- SIGNUP ----------
+        signupBtn.addEventListener('click', async () => {
+            const email = signupEmail.value;
+            const password = signupPassword.value;
+            if (!email || !password) {
+                signupMessage.textContent = '❌ Please fill in all fields.';
+                return;
+            }
+            signupMessage.textContent = '⏳ Creating account...';
+            const { data, error } = await _supabase.auth.signUp({ email, password });
+            if (error) {
+                signupMessage.textContent = '❌ ' + error.message;
+                return;
+            }
+            signupMessage.textContent = '✅ Account created! Please verify your email.';
+            setTimeout(() => showLoginForm(), 2000);
+        });
+
+        // ---------- SHOW SIGNUP/LOGIN TOGGLE ----------
+        showSignUpBtn.addEventListener('click', showSignUpForm);
+        showLoginBtn.addEventListener('click', showLoginForm);
+
+        // ---------- LOGOUT ----------
+        logoutBtn.addEventListener('click', async () => {
+            await _supabase.auth.signOut();
+            currentUser = null;
+            isAdmin = false;
+            showLoginForm();
+        });
+
+        // ---------- BROADCAST ----------
+        broadcastBtn.addEventListener('click', async () => {
+            const msg = broadcastMessage.value.trim();
+            if (!msg) {
+                broadcastMessageDiv.textContent = '❌ Please enter a message.';
+                return;
+            }
+            broadcastMessageDiv.textContent = '⏳ Sending...';
+            // TODO: Add actual SMS/WhatsApp broadcast logic here
+            broadcastMessageDiv.textContent = `✅ Broadcast sent to all subscribers! (${msg})`;
+            broadcastMessage.value = '';
+        });
+
+        // ---------- AUTO CHECK USER ----------
+        async function checkUser() {
+            const { data: { user } } = await _supabase.auth.getUser();
+            if (user) {
+                showUserDashboard(user);
+            }
+        }
+        checkUser();
+
+        // Handle Google redirect
+        if (window.location.hash && window.location.hash.includes('access_token')) {
+            setTimeout(checkUser, 2000);
+        }
+    </script>
+</body>
 </html>
