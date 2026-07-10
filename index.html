@@ -4,17 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FUTURE HELPDESK</title>
-    
-    <!-- Supabase SDK -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
-    </script>
-    
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js">
-    </script>
-    <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-messaging-compat.js">
-    </script>
-    
     <style>
         * {
             margin: 0;
@@ -23,7 +12,7 @@
         }
         body {
             background: #0a0a0f;
-            color: #ffffff;
+            color: #fff;
             font-family: Arial, sans-serif;
             display: flex;
             justify-content: center;
@@ -45,19 +34,20 @@
             color: #ff3333;
             text-shadow: 0 0 20px rgba(255, 51, 51, 0.5);
         }
-        p {
+        .subtitle {
             color: #888;
             margin: 1rem 0;
         }
-        input {
+        textarea {
             width: 100%;
-            padding: 12px;
-            margin: 8px 0;
+            height: 100px;
+            padding: 10px;
             background: rgba(255, 255, 255, 0.05);
             border: 1px solid rgba(255, 255, 255, 0.2);
             border-radius: 4px;
             color: white;
             font-size: 1rem;
+            margin: 10px 0;
         }
         button {
             width: 100%;
@@ -71,7 +61,7 @@
             cursor: pointer;
             font-weight: bold;
         }
-        button.google-btn {
+        button.notif-btn {
             background: #4285F4;
         }
         button:hover {
@@ -79,478 +69,159 @@
         }
         .message {
             margin-top: 15px;
-            color: #ffcc00;
-            font-size: 0.9rem;
+            padding: 10px;
+            border-radius: 4px;
+            font-weight: bold;
         }
         .success {
             color: #00ff00;
+            background: rgba(0, 255, 0, 0.1);
         }
-        .user-area {
-            margin-top: 20px;
-            padding: 20px;
-            border-top: 1px solid #333;
+        .error {
+            color: #ff4444;
+            background: rgba(255, 0, 0, 0.1);
         }
-        .logout-btn {
-            background: #555;
-        }
-        .admin-panel {
-            margin-top: 20px;
-            border: 1px solid #ff3333;
-            padding: 20px;
-            border-radius: 8px;
-        }
-        textarea {
-            width: 100%;
-            height: 100px;
-            padding: 10px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 4px;
-            color: white;
-            font-size: 1rem;
-            margin: 10px 0;
-        }
-        .subscriber-item {
-            display: flex;
-            justify-content: space-between;
-            border-bottom: 1px solid #222;
-            padding: 8px 0;
-            font-size: 0.9rem;
-        }
-        .badge {
-            background: #ff3333;
-            padding: 2px 10px;
-            border-radius: 12px;
-            font-size: 0.7rem;
+        .info {
+            color: #ffcc00;
+            background: rgba(255, 204, 0, 0.1);
         }
         .note {
             margin-top: 2rem;
             font-size: 0.8rem;
             color: #555;
         }
-        #notificationStatus {
-            font-size: 0.8rem;
-            margin: 5px 0;
+        #status {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 4px;
+            font-size: 0.9rem;
         }
     </style>
 </head>
 <body>
 
-    <div class="container" id="app">
+    <div class="container">
         <h1>🔥 FUTURE HELPDESK</h1>
-        <p id="subtitle">Team Future is live!</p>
+        <p class="subtitle">Team Future is live!</p>
 
-        <!-- LOGIN SECTION -->
-        <div id="login-section">
-            <input type="email" id="email" placeholder="Email Address" required>
-            <input type="password" id="password" placeholder="Password" required>
-            <button id="loginBtn">Sign In</button>
-            <button id="googleBtn" class="google-btn">Sign in with Google</button>
-            <div id="loginMessage" class="message"></div>
-            <button id="showSignUpBtn" style="background:transparent;color:#888;font-size:0.8rem;margin-top:10px;">Don't have an account? Sign Up</button>
-        </div>
+        <div id="status" class="info">🔔 Click "Enable Notifications" first</div>
 
-        <!-- SIGNUP SECTION (Hidden) -->
-        <div id="signup-section" style="display:none;">
-            <input type="email" id="signupEmail" placeholder="Email Address" required>
-            <input type="password" id="signupPassword" placeholder="Password" required>
-            <button id="signupBtn">Create Account</button>
-            <div id="signupMessage" class="message"></div>
-            <button id="showLoginBtn" style="background:transparent;color:#888;font-size:0.8rem;margin-top:10px;">Already have an account? Sign In</button>
-        </div>
+        <button id="enableBtn" class="notif-btn">🔔 Enable Notifications</button>
 
-        <!-- USER DASHBOARD (Hidden) -->
-        <div id="user-section" style="display:none;">
-            <div class="user-area">
-                <p>✅ Welcome, <span id="userEmail"></span>!</p>
-                <div id="notificationStatus"></div>
-                <button id="enableNotificationsBtn" style="background:#4285F4; display:none;">🔔 Enable Notifications</button>
-                <button id="logoutBtn" class="logout-btn">Logout</button>
-            </div>
-            <div id="admin-section" style="display:none;" class="admin-panel">
-                <h3>⚡ Admin Panel</h3>
-                <div style="margin:15px 0;">
-                    <h4>📡 Send Broadcast</h4>
-                    <textarea id="broadcastMessage" placeholder="Type your message..."></textarea>
-                    <button id="broadcastBtn">Send to All Subscribers</button>
-                    <div id="broadcastMessageDiv" class="message"></div>
-                </div>
-                <div>
-                    <h4>👥 Subscribers</h4>
-                    <div id="subscriberList"></div>
-                </div>
-            </div>
-        </div>
-        <div class="note">Secure Connection • Vercel + Supabase</div>
+        <textarea id="messageInput" placeholder="Type your broadcast message..."></textarea>
+
+        <button id="broadcastBtn">📡 Send Broadcast Notification</button>
+
+        <div id="result" class="message"></div>
+
+        <div class="note">Pure Browser Notification • No Backend Required</div>
     </div>
 
     <script>
-        // ---------- 🔥 SUPABASE DETAILS ----------
-        const SUPABASE_URL = 'https://wrsctddishgwflfbnfcx.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indyc2N0ZGRpc2hnd2ZsZmJuZmN4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM1OTY0NTgsImV4cCI6MjA5OTE3MjQ1OH0.-r7Aha9CiPNC-r4ztqNnN3JVsQTdbupBnSuUPW_TKpg';
-
-        const { createClient } = supabase;
-        const _supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-        // ---------- 🔥 FIREBASE CONFIG ----------
-        const firebaseConfig = {
-            apiKey: "AIzaSyAdXa8nD1vSrTRfarRRENf_rnAz2X3h1eY",
-            authDomain: "futurehit-70d26.firebaseapp.com",
-            projectId: "futurehit-70d26",
-            storageBucket: "futurehit-70d26.firebasestorage.app",
-            messagingSenderId: "434094239982",
-            appId: "1:434094239982:web:c07508527759a162ba83ff",
-            measurementId: "G-XB6D7H3374"
-        };
-
-        // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-        const messaging = firebase.messaging();
-
-        // ---------- DOM Elements ----------
-        const loginSection = document.getElementById('login-section');
-        const signupSection = document.getElementById('signup-section');
-        const userSection = document.getElementById('user-section');
-        const adminSection = document.getElementById('admin-section');
-        const userEmailSpan = document.getElementById('userEmail');
-        const loginMessage = document.getElementById('loginMessage');
-        const signupMessage = document.getElementById('signupMessage');
-        const subscriberList = document.getElementById('subscriberList');
-        const broadcastMessageDiv = document.getElementById('broadcastMessageDiv');
-        const notificationStatus = document.getElementById('notificationStatus');
-        const enableNotificationsBtn = document.getElementById('enableNotificationsBtn');
-
-        const emailInput = document.getElementById('email');
-        const passwordInput = document.getElementById('password');
-        const loginBtn = document.getElementById('loginBtn');
-        const googleBtn = document.getElementById('googleBtn');
-        const logoutBtn = document.getElementById('logoutBtn');
-
-        const signupEmail = document.getElementById('signupEmail');
-        const signupPassword = document.getElementById('signupPassword');
-        const signupBtn = document.getElementById('signupBtn');
-        const showSignUpBtn = document.getElementById('showSignUpBtn');
-        const showLoginBtn = document.getElementById('showLoginBtn');
-
-        const broadcastMessage = document.getElementById('broadcastMessage');
+        // ---------- DOM ELEMENTS ----------
+        const statusDiv = document.getElementById('status');
+        const enableBtn = document.getElementById('enableBtn');
         const broadcastBtn = document.getElementById('broadcastBtn');
+        const messageInput = document.getElementById('messageInput');
+        const resultDiv = document.getElementById('result');
 
-        let currentUser = null;
-        let isAdmin = false;
-        let fcmToken = null;
-
-        // ---------- UI FUNCTIONS ----------
-        function showLoginForm() {
-            loginSection.style.display = 'block';
-            signupSection.style.display = 'none';
-            userSection.style.display = 'none';
-            loginMessage.textContent = '';
-        }
-
-        function showSignUpForm() {
-            loginSection.style.display = 'none';
-            signupSection.style.display = 'block';
-            userSection.style.display = 'none';
-            signupMessage.textContent = '';
-        }
-
-        function showUserDashboard(user) {
-            loginSection.style.display = 'none';
-            signupSection.style.display = 'none';
-            userSection.style.display = 'block';
-            userEmailSpan.textContent = user.email;
-            currentUser = user;
-            checkAdmin(user.id);
-            checkNotificationPermission();
-        }
-
-        // ---------- CHECK ADMIN ----------
-        async function checkAdmin(userId) {
-            const { data, error } = await _supabase
-                .from('user_roles')
-                .select('role')
-                .eq('user_id', userId)
-                .eq('role', 'admin')
-                .single();
-
-            isAdmin = !!data;
-            if (isAdmin) {
-                adminSection.style.display = 'block';
-                fetchSubscribers();
-            } else {
-                adminSection.style.display = 'none';
-            }
-        }
-
-        // ---------- FETCH SUBSCRIBERS ----------
-        async function fetchSubscribers() {
-            const { data, error } = await _supabase
-                .from('subscribers')
-                .select('*')
-                .order('created_at', { ascending: false });
-
-            if (error) {
-                subscriberList.innerHTML = '<p style="color:red;">Failed to load subscribers</p>';
-                return;
-            }
-
-            if (!data || data.length === 0) {
-                subscriberList.innerHTML = '<p style="color:#555;">No subscribers yet.</p>';
-                return;
-            }
-
-            subscriberList.innerHTML = data.map(sub =>
-                `<div class="subscriber-item">
-                    <span>${sub.email || 'No email'}</span>
-                    <span style="color:#888;font-size:0.8rem;">${sub.codename || 'Anonymous'} • ${sub.phone || 'No phone'}</span>
-                </div>`
-            ).join('');
-        }
-
-        // ---------- FIREBASE NOTIFICATIONS ----------
-        async function requestNotificationPermission() {
-            try {
-                const permission = await Notification.requestPermission();
-                if (permission === 'granted') {
-                    notificationStatus.textContent = '✅ Notifications enabled!';
-                    notificationStatus.style.color = '#00ff00';
-                    enableNotificationsBtn.style.display = 'none';
-                    getFCMToken();
-                } else {
-                    notificationStatus.textContent = '❌ Notifications blocked. Please enable from browser settings.';
-                    notificationStatus.style.color = '#ff4444';
-                }
-            } catch (error) {
-                console.error('Notification error:', error);
-                notificationStatus.textContent = '❌ Error enabling notifications';
-            }
-        }
-
-        function checkNotificationPermission() {
+        // ---------- CHECK NOTIFICATION PERMISSION ----------
+        function updateStatus() {
             if (!('Notification' in window)) {
-                notificationStatus.textContent = '❌ Notifications not supported in this browser.';
+                statusDiv.textContent = '❌ Notifications not supported in this browser.';
+                statusDiv.className = 'message error';
+                enableBtn.style.display = 'none';
                 return;
             }
 
             if (Notification.permission === 'granted') {
-                notificationStatus.textContent = '✅ Notifications enabled!';
-                notificationStatus.style.color = '#00ff00';
-                enableNotificationsBtn.style.display = 'none';
-                getFCMToken();
+                statusDiv.textContent = '✅ Notifications ENABLED! You will receive alerts.';
+                statusDiv.className = 'message success';
+                enableBtn.style.display = 'none';
             } else if (Notification.permission === 'denied') {
-                notificationStatus.textContent = '❌ Notifications blocked. Please enable from browser settings.';
-                notificationStatus.style.color = '#ff4444';
-                enableNotificationsBtn.style.display = 'none';
+                statusDiv.textContent = '❌ Notifications BLOCKED. Please enable from browser settings.';
+                statusDiv.className = 'message error';
+                enableBtn.style.display = 'none';
             } else {
-                notificationStatus.textContent = '🔔 Click "Enable Notifications" to receive alerts.';
-                notificationStatus.style.color = '#ffcc00';
-                enableNotificationsBtn.style.display = 'block';
+                statusDiv.textContent = '🔔 Click "Enable Notifications" to receive alerts.';
+                statusDiv.className = 'message info';
+                enableBtn.style.display = 'block';
             }
         }
 
-        async function getFCMToken() {
+        // ---------- ENABLE NOTIFICATIONS ----------
+        enableBtn.addEventListener('click', async () => {
             try {
-                const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js', {
-                    scope: '/'
-                });
-                const token = await messaging.getToken({
-                    vapidKey: 'BHzo_4fV5-hwdbOzvkC-BZbn5dKamq2C24Xp8OcJoU8Cr8FwJ71aAuXhxqYiaJ6kEjnjoJbpHXRr689d06VyHWg',
-                    serviceWorkerRegistration: registration
-                });
-                fcmToken = token;
-                console.log('FCM Token:', token);
-                // Save token to Supabase
-                await saveFCMToken(token);
-                return token;
+                const permission = await Notification.requestPermission();
+                if (permission === 'granted') {
+                    statusDiv.textContent = '✅ Notifications ENABLED!';
+                    statusDiv.className = 'message success';
+                    enableBtn.style.display = 'none';
+                    // Send test notification
+                    new Notification('🔥 FUTURE HELPDESK', {
+                        body: 'Notifications are now enabled! You will receive broadcasts.',
+                        icon: 'https://saytohellofuture.cc.cd/favicon.ico'
+                    });
+                    resultDiv.textContent = '✅ Test notification sent! Check your screen.';
+                    resultDiv.className = 'message success';
+                } else {
+                    statusDiv.textContent = '❌ Permission denied. Please enable from browser settings.';
+                    statusDiv.className = 'message error';
+                }
             } catch (error) {
-                console.error('Error getting FCM token:', error);
-                return null;
+                statusDiv.textContent = '❌ Error: ' + error.message;
+                statusDiv.className = 'message error';
             }
-        }
-
-        async function saveFCMToken(token) {
-            if (!currentUser) return;
-            const { error } = await _supabase
-                .from('subscribers')
-                .upsert({
-                    user_id: currentUser.id,
-                    email: currentUser.email,
-                    fcm_token: token,
-                    updated_at: new Date().toISOString()
-                }, { onConflict: 'user_id' });
-            if (error) console.error('Error saving FCM token:', error);
-        }
-
-        // Listen for foreground messages
-        messaging.onMessage((payload) => {
-            console.log('Foreground message:', payload);
-            const title = payload.notification?.title || 'FUTURE HELPDESK';
-            const body = payload.notification?.body || 'You have a new notification';
-            new Notification(title, {
-                body: body,
-                icon: '/favicon.ico'
-            });
         });
 
-        // ---------- BROADCAST WITH NOTIFICATION ----------
-        broadcastBtn.addEventListener('click', async () => {
-            const msg = broadcastMessage.value.trim();
-            if (!msg) {
-                broadcastMessageDiv.textContent = '❌ Please enter a message.';
+        // ---------- SEND BROADCAST NOTIFICATION ----------
+        broadcastBtn.addEventListener('click', () => {
+            const message = messageInput.value.trim();
+
+            if (!message) {
+                resultDiv.textContent = '❌ Please enter a message first!';
+                resultDiv.className = 'message error';
                 return;
             }
 
-            broadcastMessageDiv.textContent = '⏳ Sending broadcast...';
+            if (Notification.permission !== 'granted') {
+                resultDiv.textContent = '❌ Please enable notifications first! Click "Enable Notifications" button.';
+                resultDiv.className = 'message error';
+                return;
+            }
 
             try {
-                // Get all subscribers with FCM tokens
-                const { data: subscribers, error } = await _supabase
-                    .from('subscribers')
-                    .select('fcm_token')
-                    .not('fcm_token', 'is', null);
+                // Send the notification
+                new Notification('📡 FUTURE HELPDESK BROADCAST', {
+                    body: message,
+                    icon: 'https://saytohellofuture.cc.cd/favicon.ico'
+                });
 
-                if (error) throw error;
-
-                let sentCount = 0;
-                if (subscribers && subscribers.length > 0) {
-                    // Send notification to each subscriber
-                    for (const sub of subscribers) {
-                        if (sub.fcm_token) {
-                            try {
-                                await fetch('/api/send-notification', {
-                                    method: 'POST',
-                                    headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify({
-                                        token: sub.fcm_token,
-                                        title: 'FUTURE HELPDESK',
-                                        body: msg
-                                    })
-                                });
-                                sentCount++;
-                            } catch (e) {
-                                console.error('Failed to send to:', sub.fcm_token, e);
-                            }
-                        }
-                    }
-                }
-
-                // Also send to current admin (test)
-                if (fcmToken) {
-                    try {
-                        await fetch('/api/send-notification', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                token: fcmToken,
-                                title: 'FUTURE HELPDESK',
-                                body: `[ADMIN] ${msg}`
-                            })
-                        });
-                        sentCount++;
-                    } catch (e) {
-                        console.error('Failed to send to admin:', e);
-                    }
-                }
-
-                broadcastMessageDiv.textContent = `✅ Broadcast sent to ${sentCount} devices!`;
-                broadcastMessageDiv.style.color = '#00ff00';
-                broadcastMessage.value = '';
+                resultDiv.textContent = '✅ Broadcast notification sent successfully!';
+                resultDiv.className = 'message success';
+                messageInput.value = '';
 
             } catch (error) {
-                broadcastMessageDiv.textContent = '❌ Error sending broadcast: ' + error.message;
-                broadcastMessageDiv.style.color = '#ff4444';
+                resultDiv.textContent = '❌ Error sending notification: ' + error.message;
+                resultDiv.className = 'message error';
             }
         });
 
-        // ---------- ENABLE NOTIFICATIONS BUTTON ----------
-        enableNotificationsBtn.addEventListener('click', requestNotificationPermission);
+        // ---------- INIT ----------
+        updateStatus();
 
-        // ---------- LOGIN ----------
-        loginBtn.addEventListener('click', async () => {
-            const email = emailInput.value;
-            const password = passwordInput.value;
-            if (!email || !password) {
-                loginMessage.textContent = '❌ Please fill in all fields.';
-                return;
-            }
-            loginMessage.textContent = '⏳ Logging in...';
-            const { data, error } = await _supabase.auth.signInWithPassword({ email, password });
-            if (error) {
-                loginMessage.textContent = '❌ ' + error.message;
-                return;
-            }
-            if (data.user) {
-                loginMessage.textContent = '✅ Welcome back!';
-                showUserDashboard(data.user);
-            }
-        });
-
-        // ---------- GOOGLE LOGIN ----------
-        googleBtn.addEventListener('click', async () => {
-            loginMessage.textContent = '⏳ Redirecting to Google...';
-            const { error } = await _supabase.auth.signInWithOAuth({
-                provider: 'google',
-                options: { redirectTo: window.location.origin }
-            });
-            if (error) {
-                loginMessage.textContent = '❌ ' + error.message;
-            }
-        });
-
-        // ---------- SIGNUP ----------
-        signupBtn.addEventListener('click', async () => {
-            const email = signupEmail.value;
-            const password = signupPassword.value;
-            if (!email || !password) {
-                signupMessage.textContent = '❌ Please fill in all fields.';
-                return;
-            }
-            signupMessage.textContent = '⏳ Creating account...';
-            const { data, error } = await _supabase.auth.signUp({ email, password });
-            if (error) {
-                signupMessage.textContent = '❌ ' + error.message;
-                return;
-            }
-            signupMessage.textContent = '✅ Account created! Please verify your email.';
-            setTimeout(() => showLoginForm(), 2000);
-        });
-
-        // ---------- SHOW SIGNUP/LOGIN TOGGLE ----------
-        showSignUpBtn.addEventListener('click', showSignUpForm);
-        showLoginBtn.addEventListener('click', showLoginForm);
-
-        // ---------- LOGOUT ----------
-        logoutBtn.addEventListener('click', async () => {
-            await _supabase.auth.signOut();
-            currentUser = null;
-            isAdmin = false;
-            showLoginForm();
-        });
-
-        // ---------- AUTO CHECK USER ----------
-        async function checkUser() {
-            const { data: { user } } = await _supabase.auth.getUser();
-            if (user) {
-                showUserDashboard(user);
-            }
-        }
-        checkUser();
-
-        // Handle Google redirect
-        if (window.location.hash && window.location.hash.includes('access_token')) {
-            setTimeout(checkUser, 2000);
-        }
-
-        // Register Service Worker on load
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/firebase-messaging-sw.js')
-                    .then(reg => console.log('SW registered:', reg))
-                    .catch(err => console.error('SW registration failed:', err));
-            });
+        // ---------- TEST NOTIFICATION ON LOAD (if already granted) ----------
+        if (Notification.permission === 'granted') {
+            setTimeout(() => {
+                new Notification('🔥 FUTURE HELPDESK', {
+                    body: 'Welcome back! You are ready to receive broadcasts.',
+                    icon: 'https://saytohellofuture.cc.cd/favicon.ico'
+                });
+            }, 1000);
         }
 
         console.log('🔥 FUTURE HELPDESK loaded!');
+        console.log('Notification permission:', Notification.permission);
     </script>
 
 </body>
