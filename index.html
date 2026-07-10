@@ -1,9 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>FUTURE HELPDESK</title>
+    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
+    </script>
+
     <style>
         * {
             margin: 0;
@@ -12,7 +16,7 @@
         }
         body {
             background: #0a0a0f;
-            color: #fff;
+            color: #ffffff;
             font-family: Arial, sans-serif;
             display: flex;
             justify-content: center;
@@ -37,6 +41,16 @@
         .subtitle {
             color: #888;
             margin: 1rem 0;
+        }
+        input {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            color: white;
+            font-size: 1rem;
         }
         textarea {
             width: 100%;
@@ -71,6 +85,12 @@
         .btn-send {
             background: #ff3333;
         }
+        .btn-google {
+            background: #ea4335;
+        }
+        .btn-logout {
+            background: #555;
+        }
         .btn-test {
             background: #34a853;
         }
@@ -104,121 +124,279 @@
             color: #aaa;
             min-height: 30px;
         }
-        .counter {
-            font-size: 0.8rem;
-            color: #666;
-            margin: 5px 0;
+        .user-area {
+            margin-top: 20px;
+            padding: 20px;
+            border-top: 1px solid #333;
+        }
+        .admin-panel {
+            margin-top: 20px;
+            border: 1px solid #ff3333;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        .subscriber-item {
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 1px solid #222;
+            padding: 8px 0;
+            font-size: 0.9rem;
+        }
+        .hide {
+            display: none;
         }
     </style>
 </head>
 <body>
 
-    <div class="container">
+    <div class="container" id="app">
         <h1>🔥 FUTURE HELPDESK</h1>
         <p class="subtitle">Team Future is live!</p>
 
-        <div id="status" class="yellow">🔔 Click "Enable Notifications"</div>
+        <!-- LOGIN SECTION -->
+        <div id="loginSection">
+            <input type="email" id="email" placeholder="Email Address" required />
+            <input type="password" id="password" placeholder="Password" required />
+            <button id="loginBtn">Sign In</button>
+            <button id="googleBtn" class="btn-google">Sign in with Google</button>
+            <div id="loginMessage" class="yellow" style="margin-top:10px;"></div>
+            <button id="showSignUpBtn" style="background:transparent;color:#888;font-size:0.8rem;margin-top:10px;">
+                Don't have an account? Sign Up
+            </button>
+        </div>
 
-        <button id="enableBtn" class="btn-notif">🔔 Enable Notifications</button>
-        <button id="testBtn" class="btn-test" style="display:none;">🔊 Test Notification</button>
+        <!-- SIGNUP SECTION -->
+        <div id="signupSection" class="hide">
+            <input type="email" id="signupEmail" placeholder="Email Address" required />
+            <input type="password" id="signupPassword" placeholder="Password" required />
+            <button id="signupBtn">Create Account</button>
+            <div id="signupMessage" class="yellow" style="margin-top:10px;"></div>
+            <button id="showLoginBtn" style="background:transparent;color:#888;font-size:0.8rem;margin-top:10px;">
+                Already have an account? Sign In
+            </button>
+        </div>
 
-        <textarea id="msgInput" placeholder="Type your broadcast message..."></textarea>
+        <!-- USER DASHBOARD -->
+        <div id="userSection" class="hide">
+            <div class="user-area">
+                <p>✅ Welcome, <span id="userEmail"></span>!</p>
+                <div id="status" class="yellow">🔔 Click "Enable Notifications"</div>
+                <button id="enableBtn" class="btn-notif">🔔 Enable Notifications</button>
+                <button id="testBtn" class="btn-test hide">🔊 Test Notification</button>
+                <button id="logoutBtn" class="btn-logout">Logout</button>
+            </div>
 
-        <button id="sendBtn" class="btn-send">📡 Send Broadcast</button>
-
-        <div id="log"></div>
+            <!-- ADMIN PANEL -->
+            <div id="adminSection" class="admin-panel hide">
+                <h3>⚡ Admin Panel</h3>
+                <div style="margin:15px 0;">
+                    <h4>📡 Send Broadcast</h4>
+                    <textarea id="msgInput" placeholder="Type your broadcast message..."></textarea>
+                    <button id="sendBtn" class="btn-send">📡 Send Broadcast</button>
+                    <div id="log" class="yellow"></div>
+                </div>
+                <div>
+                    <h4>👥 Subscribers</h4>
+                    <div id="subscriberList"></div>
+                </div>
+            </div>
+        </div>
 
         <div class="note">🔊 Pure Browser Notification • Works 100%</div>
     </div>
 
     <script>
+        // ---------- 🔥 SUPABASE DETAILS ----------
+        const SUPABASE_URL = 'https://wrsctddishgwflfbnfcx.supabase.co';
+        const SUPABASE_ANON_KEY =
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indyc2N0ZGRpc2hnd2ZsZmJuZmN4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM1OTY0NTgsImV4cCI6MjA5OTE3MjQ1OH0.-r7Aha9CiPNC-r4ztqNnN3JVsQTdbupBnSuUPW_TKpg';
+
+        const { createClient } = supabase;
+        const _supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
         // ---------- DOM ----------
+        const loginSection = document.getElementById('loginSection');
+        const signupSection = document.getElementById('signupSection');
+        const userSection = document.getElementById('userSection');
+        const adminSection = document.getElementById('adminSection');
+
+        const emailInput = document.getElementById('email');
+        const passwordInput = document.getElementById('password');
+        const loginBtn = document.getElementById('loginBtn');
+        const googleBtn = document.getElementById('googleBtn');
+        const loginMessage = document.getElementById('loginMessage');
+
+        const signupEmail = document.getElementById('signupEmail');
+        const signupPassword = document.getElementById('signupPassword');
+        const signupBtn = document.getElementById('signupBtn');
+        const signupMessage = document.getElementById('signupMessage');
+
+        const userEmailSpan = document.getElementById('userEmail');
+        const logoutBtn = document.getElementById('logoutBtn');
+
         const statusDiv = document.getElementById('status');
         const enableBtn = document.getElementById('enableBtn');
         const testBtn = document.getElementById('testBtn');
         const sendBtn = document.getElementById('sendBtn');
         const msgInput = document.getElementById('msgInput');
         const logDiv = document.getElementById('log');
+        const subscriberList = document.getElementById('subscriberList');
 
-        // ---------- UPDATE STATUS ----------
-        function updateStatus() {
+        const showSignUpBtn = document.getElementById('showSignUpBtn');
+        const showLoginBtn = document.getElementById('showLoginBtn');
+
+        let currentUser = null;
+        let isAdmin = false;
+
+        // ---------- UI FUNCTIONS ----------
+        function showLoginForm() {
+            loginSection.classList.remove('hide');
+            signupSection.classList.add('hide');
+            userSection.classList.add('hide');
+        }
+
+        function showSignUpForm() {
+            loginSection.classList.add('hide');
+            signupSection.classList.remove('hide');
+            userSection.classList.add('hide');
+        }
+
+        function showUserDashboard(user) {
+            loginSection.classList.add('hide');
+            signupSection.classList.add('hide');
+            userSection.classList.remove('hide');
+            userEmailSpan.textContent = user.email;
+            currentUser = user;
+            checkAdmin(user.id);
+            updateNotificationStatus();
+        }
+
+        // ---------- CHECK ADMIN ----------
+        async function checkAdmin(userId) {
+            const { data } = await _supabase
+                .from('user_roles')
+                .select('role')
+                .eq('user_id', userId)
+                .eq('role', 'admin')
+                .single();
+
+            isAdmin = !!data;
+            if (isAdmin) {
+                adminSection.classList.remove('hide');
+                fetchSubscribers();
+            } else {
+                adminSection.classList.add('hide');
+            }
+        }
+
+        // ---------- FETCH SUBSCRIBERS ----------
+        async function fetchSubscribers() {
+            const { data } = await _supabase
+                .from('subscribers')
+                .select('*')
+                .order('created_at', { ascending: false });
+
+            if (!data || data.length === 0) {
+                subscriberList.innerHTML = '<p style="color:#555;">No subscribers yet.</p>';
+                return;
+            }
+
+            subscriberList.innerHTML = data.map(sub =>
+                `<div class="subscriber-item">
+                    <span>${sub.email || 'No email'}</span>
+                    <span style="color:#888;font-size:0.8rem;">${sub.codename || 'Anonymous'} • ${sub.phone || 'No phone'}</span>
+                </div>`
+            ).join('');
+        }
+
+        // ---------- NOTIFICATIONS (SERVICE WORKER) ----------
+        async function registerServiceWorker() {
+            if (!('serviceWorker' in navigator)) {
+                console.log('❌ Service Worker not supported');
+                return false;
+            }
+
+            try {
+                const registration = await navigator.serviceWorker.register('/sw.js');
+                console.log('✅ SW registered:', registration);
+                return registration;
+            } catch (error) {
+                console.log('❌ SW registration failed:', error);
+                return false;
+            }
+        }
+
+        async function sendNotification(title, body) {
+            const registration = await navigator.serviceWorker.ready;
+            registration.showNotification(title, {
+                body: body,
+                icon: '/favicon.ico',
+                badge: '/favicon.ico',
+                vibrate: [200, 100, 200]
+            });
+        }
+
+        // ---------- NOTIFICATION PERMISSION ----------
+        function updateNotificationStatus() {
             if (!('Notification' in window)) {
-                statusDiv.textContent = '❌ Notifications not supported in this browser';
+                statusDiv.textContent = '❌ Notifications not supported';
                 statusDiv.className = 'red';
-                enableBtn.style.display = 'none';
-                testBtn.style.display = 'none';
+                enableBtn.classList.add('hide');
+                testBtn.classList.add('hide');
                 return;
             }
 
             const perm = Notification.permission;
 
             if (perm === 'granted') {
-                statusDiv.textContent = '✅ Notifications ENABLED! Ready to broadcast.';
+                statusDiv.textContent = '✅ Notifications ENABLED!';
                 statusDiv.className = 'green';
-                enableBtn.style.display = 'none';
-                testBtn.style.display = 'block';
-                logDiv.textContent = '✅ Notification permission granted. You can send broadcasts.';
+                enableBtn.classList.add('hide');
+                testBtn.classList.remove('hide');
+                logDiv.textContent = '✅ Ready to broadcast!';
             } else if (perm === 'denied') {
-                statusDiv.textContent = '❌ Notifications BLOCKED. Please enable from browser settings.';
+                statusDiv.textContent = '❌ Notifications BLOCKED. Enable from browser settings.';
                 statusDiv.className = 'red';
-                enableBtn.style.display = 'none';
-                testBtn.style.display = 'none';
-                logDiv.textContent = '❌ Go to browser settings → Privacy → Notifications → Allow this site.';
+                enableBtn.classList.add('hide');
+                testBtn.classList.add('hide');
             } else {
-                statusDiv.textContent = '🔔 Click "Enable Notifications" to start receiving alerts.';
+                statusDiv.textContent = '🔔 Click "Enable Notifications" to start.';
                 statusDiv.className = 'yellow';
-                enableBtn.style.display = 'block';
-                testBtn.style.display = 'none';
-                logDiv.textContent = '';
+                enableBtn.classList.remove('hide');
+                testBtn.classList.add('hide');
             }
         }
 
         // ---------- ENABLE NOTIFICATIONS ----------
         enableBtn.addEventListener('click', async () => {
             try {
-                logDiv.textContent = '⏳ Asking for permission...';
                 const permission = await Notification.requestPermission();
-
                 if (permission === 'granted') {
-                    statusDiv.textContent = '✅ Notifications ENABLED!';
-                    statusDiv.className = 'green';
-                    enableBtn.style.display = 'none';
-                    testBtn.style.display = 'block';
-
-                    // Send welcome notification
-                    new Notification('🔥 FUTURE HELPDESK', {
-                        body: 'Notifications are now enabled! You will receive broadcasts.',
-                        icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">🔥</text></svg>'
-                    });
-
+                    await registerServiceWorker();
+                    updateNotificationStatus();
+                    sendNotification('🔥 FUTURE HELPDESK', 'Notifications are now enabled!');
                     logDiv.textContent = '✅ Notifications enabled! Test notification sent.';
                 } else {
-                    statusDiv.textContent = '❌ Permission denied. Please allow from browser settings.';
+                    statusDiv.textContent = '❌ Permission denied.';
                     statusDiv.className = 'red';
-                    logDiv.textContent = '❌ You denied permission. Enable manually from browser settings.';
                 }
             } catch (error) {
                 logDiv.textContent = '❌ Error: ' + error.message;
-                statusDiv.textContent = '❌ Error enabling notifications';
-                statusDiv.className = 'red';
             }
         });
 
         // ---------- TEST NOTIFICATION ----------
-        testBtn.addEventListener('click', () => {
+        testBtn.addEventListener('click', async () => {
             try {
-                new Notification('🔊 FUTURE HELPDESK TEST', {
-                    body: 'This is a test notification! If you see this, it works!',
-                    icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">🔥</text></svg>'
-                });
-                logDiv.textContent = '✅ Test notification sent! Check your screen.';
+                await sendNotification('🔊 TEST', 'This is a test notification!');
+                logDiv.textContent = '✅ Test notification sent!';
             } catch (error) {
                 logDiv.textContent = '❌ Error: ' + error.message;
             }
         });
 
         // ---------- SEND BROADCAST ----------
-        sendBtn.addEventListener('click', () => {
+        sendBtn.addEventListener('click', async () => {
             const msg = msgInput.value.trim();
 
             if (!msg) {
@@ -227,46 +405,100 @@
             }
 
             if (Notification.permission !== 'granted') {
-                logDiv.textContent = '❌ Please enable notifications first! Click "Enable Notifications" button.';
+                logDiv.textContent = '❌ Please enable notifications first!';
                 return;
             }
 
             try {
-                new Notification('📡 FUTURE HELPDESK BROADCAST', {
-                    body: msg,
-                    icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">🔥</text></svg>'
-                });
-
+                await sendNotification('📡 FUTURE HELPDESK', msg);
                 logDiv.textContent = '✅ Broadcast sent successfully!';
                 msgInput.value = '';
-
             } catch (error) {
-                logDiv.textContent = '❌ Error sending broadcast: ' + error.message;
+                logDiv.textContent = '❌ Error: ' + error.message;
             }
         });
 
-        // ---------- KEYBOARD SHORTCUT ----------
-        msgInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' && e.ctrlKey) {
-                sendBtn.click();
+        // ---------- LOGIN ----------
+        loginBtn.addEventListener('click', async () => {
+            const email = emailInput.value;
+            const password = passwordInput.value;
+            if (!email || !password) {
+                loginMessage.textContent = '❌ Please fill in all fields.';
+                return;
+            }
+            loginMessage.textContent = '⏳ Logging in...';
+            const { data, error } = await _supabase.auth.signInWithPassword({ email, password });
+            if (error) {
+                loginMessage.textContent = '❌ ' + error.message;
+                return;
+            }
+            if (data.user) {
+                loginMessage.textContent = '✅ Welcome back!';
+                showUserDashboard(data.user);
             }
         });
 
-        // ---------- INIT ----------
-        updateStatus();
+        // ---------- GOOGLE LOGIN ----------
+        googleBtn.addEventListener('click', async () => {
+            loginMessage.textContent = '⏳ Redirecting to Google...';
+            const { error } = await _supabase.auth.signInWithOAuth({
+                provider: 'google',
+                options: { redirectTo: window.location.origin }
+            });
+            if (error) {
+                loginMessage.textContent = '❌ ' + error.message;
+            }
+        });
 
-        // ---------- AUTO WELCOME NOTIFICATION (if already granted) ----------
-        if (Notification.permission === 'granted') {
-            setTimeout(() => {
-                new Notification('🔥 FUTURE HELPDESK', {
-                    body: 'Welcome back! Ready to broadcast.',
-                    icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">🔥</text></svg>'
-                });
-            }, 1500);
+        // ---------- SIGNUP ----------
+        signupBtn.addEventListener('click', async () => {
+            const email = signupEmail.value;
+            const password = signupPassword.value;
+            if (!email || !password) {
+                signupMessage.textContent = '❌ Please fill in all fields.';
+                return;
+            }
+            signupMessage.textContent = '⏳ Creating account...';
+            const { data, error } = await _supabase.auth.signUp({ email, password });
+            if (error) {
+                signupMessage.textContent = '❌ ' + error.message;
+                return;
+            }
+            signupMessage.textContent = '✅ Account created! Please verify your email.';
+            setTimeout(showLoginForm, 2000);
+        });
+
+        // ---------- SHOW SIGNUP/LOGIN TOGGLE ----------
+        showSignUpBtn.addEventListener('click', showSignUpForm);
+        showLoginBtn.addEventListener('click', showLoginForm);
+
+        // ---------- LOGOUT ----------
+        logoutBtn.addEventListener('click', async () => {
+            await _supabase.auth.signOut();
+            currentUser = null;
+            isAdmin = false;
+            showLoginForm();
+        });
+
+        // ---------- AUTO CHECK USER ----------
+        async function checkUser() {
+            const { data: { user } } = await _supabase.auth.getUser();
+            if (user) {
+                showUserDashboard(user);
+            }
+        }
+        checkUser();
+
+        // Handle Google redirect
+        if (window.location.hash && window.location.hash.includes('access_token')) {
+            setTimeout(checkUser, 2000);
         }
 
+        // ---------- INIT ----------
+        registerServiceWorker();
+        updateNotificationStatus();
+
         console.log('🔥 FUTURE HELPDESK loaded!');
-        console.log('Notification permission:', Notification.permission);
     </script>
 
 </body>
