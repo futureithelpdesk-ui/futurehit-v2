@@ -1,4 +1,3 @@
-// 🔥 Service Worker for FUTURE HELPDESK
 self.addEventListener('install', (event) => {
     console.log('🔔 SW installed');
     self.skipWaiting();
@@ -16,15 +15,4 @@ self.addEventListener('message', (event) => {
             icon: event.data.icon || 'https://saytohellofuture.cc.cd/favicon.ico'
         });
     }
-});
-
-// Handle push notifications
-self.addEventListener('push', (event) => {
-    const data = event.data ? event.data.json() : {};
-    const title = data.title || 'FUTURE HELPDESK';
-    const options = {
-        body: data.body || 'You have a new notification!',
-        icon: data.icon || 'https://saytohellofuture.cc.cd/favicon.ico'
-    };
-    event.waitUntil(self.registration.showNotification(title, options));
 });
