@@ -1,13 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FUTURE HELPDESK</title>
-    
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
     </script>
-
     <style>
         * {
             margin: 0;
@@ -42,7 +40,8 @@
             color: #888;
             margin: 1rem 0;
         }
-        input {
+        input,
+        textarea {
             width: 100%;
             padding: 12px;
             margin: 8px 0;
@@ -53,15 +52,7 @@
             font-size: 1rem;
         }
         textarea {
-            width: 100%;
             height: 100px;
-            padding: 10px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 4px;
-            color: white;
-            font-size: 1rem;
-            margin: 10px 0;
             resize: vertical;
         }
         button {
@@ -192,7 +183,7 @@
                 <div style="margin:15px 0;">
                     <h4>📡 Send Broadcast</h4>
                     <textarea id="msgInput" placeholder="Type your broadcast message..."></textarea>
-                    <button id="sendBtn" class="btn-send">📡 Send Broadcast</button>
+                    <button id="sendBtn" class="btn-send">📡 Send Broadcast (SMS)</button>
                     <div id="log" class="yellow"></div>
                 </div>
                 <div>
@@ -247,6 +238,12 @@
 
         let currentUser = null;
         let isAdmin = false;
+        let fcmToken = null;
+
+        // ---------- TWILIO CONFIG ----------
+        const TWILIO_ACCOUNT_SID = 'AC0325f3b74c73233fbeb51508909198ec';
+        const TWILIO_AUTH_TOKEN = 'a58fc882267a77e5e08a69486a2bce07';
+        const TWILIO_PHONE_NUMBER = '+14245091486';
 
         // ---------- UI FUNCTIONS ----------
         function showLoginForm() {
@@ -309,13 +306,9 @@
             ).join('');
         }
 
-        // ---------- NOTIFICATIONS (SERVICE WORKER) ----------
+        // ---------- NOTIFICATIONS ----------
         async function registerServiceWorker() {
-            if (!('serviceWorker' in navigator)) {
-                console.log('❌ Service Worker not supported');
-                return false;
-            }
-
+            if (!('serviceWorker' in navigator)) return false;
             try {
                 const registration = await navigator.serviceWorker.register('/sw.js');
                 console.log('✅ SW registered:', registration);
@@ -330,13 +323,12 @@
             const registration = await navigator.serviceWorker.ready;
             registration.showNotification(title, {
                 body: body,
-                icon: '/favicon.ico',
-                badge: '/favicon.ico',
+                icon: 'https://saytohellofuture.cc.cd/favicon.ico',
+                badge: 'https://saytohellofuture.cc.cd/favicon.ico',
                 vibrate: [200, 100, 200]
             });
         }
 
-        // ---------- NOTIFICATION PERMISSION ----------
         function updateNotificationStatus() {
             if (!('Notification' in window)) {
                 statusDiv.textContent = '❌ Notifications not supported';
@@ -367,7 +359,6 @@
             }
         }
 
-        // ---------- ENABLE NOTIFICATIONS ----------
         enableBtn.addEventListener('click', async () => {
             try {
                 const permission = await Notification.requestPermission();
@@ -385,7 +376,6 @@
             }
         });
 
-        // ---------- TEST NOTIFICATION ----------
         testBtn.addEventListener('click', async () => {
             try {
                 await sendNotification('🔊 TEST', 'This is a test notification!');
@@ -395,7 +385,7 @@
             }
         });
 
-        // ---------- SEND BROADCAST ----------
+        // ---------- SEND BROADCAST (SMS via Twilio) ----------
         sendBtn.addEventListener('click', async () => {
             const msg = msgInput.value.trim();
 
@@ -410,15 +400,64 @@
             }
 
             try {
+                // 1. Send browser notification
                 await sendNotification('📡 FUTURE HELPDESK', msg);
-                logDiv.textContent = '✅ Broadcast sent successfully!';
+
+                // 2. Send SMS via Twilio (real broadcast)
+                logDiv.textContent = '⏳ Sending SMS to subscribers...';
+
+                // Fetch all subscribers with phone numbers
+                const { data: subscribers, error } = await _supabase
+                    .from('subscribers')
+                    .select('phone')
+                    .not('phone', 'is', null);
+
+                if (error) throw error;
+
+                let sentCount = 0;
+                let failedCount = 0;
+
+                if (subscribers && subscribers.length > 0) {
+                    for (const sub of subscribers) {
+                        if (sub.phone) {
+                            try {
+                                // Send SMS via Twilio
+                                const response = await fetch(
+                                    `https://api.twilio.com/2010-04-01/Accounts/${TWILIO_ACCOUNT_SID}/Messages.json`, {
+                                        method: 'POST',
+                                        headers: {
+                                            'Authorization': 'Basic ' + btoa(TWILIO_ACCOUNT_SID + ':' + TWILIO_AUTH_TOKEN),
+                                            'Content-Type': 'application/x-www-form-urlencoded'
+                                        },
+                                        body: new URLSearchParams({
+                                            To: sub.phone,
+                                            From: TWILIO_PHONE_NUMBER,
+                                            Body: `📡 FUTURE HELPDESK: ${msg}`
+                                        })
+                                    }
+                                );
+
+                                if (response.ok) {
+                                    sentCount++;
+                                } else {
+                                    failedCount++;
+                                }
+                            } catch (e) {
+                                failedCount++;
+                            }
+                        }
+                    }
+                }
+
+                logDiv.textContent = `✅ SMS sent to ${sentCount} subscribers! (${failedCount} failed)`;
                 msgInput.value = '';
+
             } catch (error) {
                 logDiv.textContent = '❌ Error: ' + error.message;
             }
         });
 
-        // ---------- LOGIN ----------
+        // ---------- LOGIN / AUTH ----------
         loginBtn.addEventListener('click', async () => {
             const email = emailInput.value;
             const password = passwordInput.value;
@@ -438,7 +477,6 @@
             }
         });
 
-        // ---------- GOOGLE LOGIN ----------
         googleBtn.addEventListener('click', async () => {
             loginMessage.textContent = '⏳ Redirecting to Google...';
             const { error } = await _supabase.auth.signInWithOAuth({
@@ -450,7 +488,6 @@
             }
         });
 
-        // ---------- SIGNUP ----------
         signupBtn.addEventListener('click', async () => {
             const email = signupEmail.value;
             const password = signupPassword.value;
@@ -468,11 +505,9 @@
             setTimeout(showLoginForm, 2000);
         });
 
-        // ---------- SHOW SIGNUP/LOGIN TOGGLE ----------
         showSignUpBtn.addEventListener('click', showSignUpForm);
         showLoginBtn.addEventListener('click', showLoginForm);
 
-        // ---------- LOGOUT ----------
         logoutBtn.addEventListener('click', async () => {
             await _supabase.auth.signOut();
             currentUser = null;
@@ -489,16 +524,14 @@
         }
         checkUser();
 
-        // Handle Google redirect
         if (window.location.hash && window.location.hash.includes('access_token')) {
             setTimeout(checkUser, 2000);
         }
 
-        // ---------- INIT ----------
         registerServiceWorker();
         updateNotificationStatus();
 
-        console.log('🔥 FUTURE HELPDESK loaded!');
+        console.log('🔥 FUTURE HELPDESK loaded with Twilio!');
     </script>
 
 </body>
