@@ -1,6 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import BootSequence from "@/components/cyber/BootSequence";
 import { BootSequence } from "@/components/cyber/BootSequence";
 import { SmoothScroll } from "@/components/cyber/SmoothScroll";
 import { TopHUD, BottomHUD } from "@/components/cyber/HUD";
