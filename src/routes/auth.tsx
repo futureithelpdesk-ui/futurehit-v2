@@ -3,6 +3,9 @@ import { useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { toast } from 'sonner'
 
+createFileRoute
+export default function Auth()
+
 export const Route = createFileRoute('/auth')({
   component: AuthPage,
 })
