@@ -45,11 +45,10 @@ export function HeroSection() {
             className="mt-10"
           >
             <Link
-              to="/enlist"
+              to="/auth"
               className="group relative inline-flex items-center gap-3 overflow-hidden border-2 border-red-500/60 bg-red-500/10 px-8 py-4 font-display text-sm font-black uppercase tracking-[0.35em] text-red-300 backdrop-blur-sm transition hover:bg-red-500/20 hover:text-white"
             >
-              <span className="relative z-10">JOIN THE GHOSTS</span>
-              <span className="relative z-10 text-red-400 group-hover:translate-x-1 transition-transform">→</span>
+              <span className="relative z-10">ACCESS CONSOLE</span>
             </Link>
           </motion.div>
         </motion.div>
