@@ -7,7 +7,5 @@ export const getRouter = () => {
   return createRouter({
     routeTree,
     context: { queryClient },
-    scrollRestoration: true,
-    defaultPreloadStaleTime: 0,
   })
 }
