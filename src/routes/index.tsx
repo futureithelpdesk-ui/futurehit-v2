@@ -122,3 +122,6 @@ function Index() {
     </main>
   );
 }
+export const Route = createFileRoute('/')({
+  component: HomePage,
+})
