@@ -18,6 +18,7 @@ import { CinematicIntro } from "@/components/cyber/CinematicIntro";
 import skullImg from "@/assets/skull.jpg";
 import anonImg from "@/assets/anon.jpg";
 import teamImg from "@/assets/team.jpg";
+import { createFileRoute } from "@tanstack/react-router";
 
 function Index()
 export default function Home()
