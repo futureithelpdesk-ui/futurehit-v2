@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import { Toaster, toast } from 'sonner'
 
-export const Route = createFileRoute('/auth')({
+export const authRoute = createFileRoute('/auth')({
   component: AuthPage,
 })
 
