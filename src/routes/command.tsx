@@ -71,7 +71,6 @@ function CommandPage() {
     }
 
     setLoading(true)
-    // Broadcast logic here (SMS/WhatsApp via Twilio or Push via FCM)
     toast.success(`Broadcast sent to ${subscribers.length} subscribers!`)
     setMessage('')
     setLoading(false)
