@@ -1,3 +1,4 @@
+import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { BootSequence } from "@/components/cyber/BootSequence";
 import { SmoothScroll } from "@/components/cyber/SmoothScroll";
@@ -15,13 +16,15 @@ import { StatsSection } from "@/components/cyber/StatsSection";
 import { GlitchTransition } from "@/components/cyber/GlitchTransition";
 import { EndingSection } from "@/components/cyber/EndingSection";
 import { CinematicIntro } from "@/components/cyber/CinematicIntro";
-import skullImg from "@/assets/skull.jpg";
-import anonImg from "@/assets/anon.jpg";
-import teamImg from "@/assets/team.jpg";
-import { createFileRoute } from "@tanstack/react-router";
 
-function Index()
-export default function Home()
+// Images — agar assets folder mein nahi hain toh placeholder use karo
+const skullImg = "/skull.jpg";
+const anonImg = "/anon.jpg";
+const teamImg = "/team.jpg";
+
+export const Route = createFileRoute("/")({
+  component: Index,
+});
 
 function Index() {
   const [booted, setBooted] = useState(false);
@@ -122,6 +125,3 @@ function Index() {
     </main>
   );
 }
-export const Route = createFileRoute('/')({
-  component: HomePage,
-})
