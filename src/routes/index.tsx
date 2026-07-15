@@ -3,7 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 
-export const Route = createFileRoute("/")({
+export const indexRoute = createFileRoute("/")({
   component: Index,
 });
 
