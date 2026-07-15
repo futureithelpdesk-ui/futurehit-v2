@@ -1,7 +1,7 @@
 import { Route as rootRoute } from './routes/__root'
-import { Route as IndexRoute } from './routes/index'
-import { Route as AuthRoute } from './routes/auth'
-import { Route as CommandRoute } from './routes/command'
+import IndexRoute from './routes/index'
+import AuthRoute from './routes/auth'
+import CommandRoute from './routes/command'
 
 const rootRouteChildren = {
   IndexRoute,
