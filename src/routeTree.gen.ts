@@ -4,7 +4,7 @@ import { Route as IndexRoute } from './routes/index'
 import { Route as AuthRoute } from './routes/auth'
 import { Route as CommandRoute } from './routes/command'
 
-// ✅ CORRECT: Unique paths and valid hierarchy
+// ✅ CORRECT: Sab routes ko parent se link karo
 const routeTree = rootRoute.addChildren([
   IndexRoute,
   AuthRoute,
