@@ -1,14 +1,12 @@
-import { createRootRoute, createRoute, createRouter } from '@tanstack/react-router'
 import { Route as rootRoute } from './routes/__root'
 import { Route as IndexRoute } from './routes/index'
 import { Route as AuthRoute } from './routes/auth'
 import { Route as CommandRoute } from './routes/command'
 
-// ✅ CORRECT: Sab routes ko parent se link karo
-const routeTree = rootRoute.addChildren([
-  IndexRoute,
-  AuthRoute,
-  CommandRoute,
-])
+// ✅ CORRECT: TanStack Router v1 syntax
+const routeTree = {
+  root: rootRoute,
+  children: [IndexRoute, AuthRoute, CommandRoute],
+}
 
 export { routeTree }
