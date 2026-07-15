@@ -11,7 +11,7 @@ type Subscriber = {
   created_at: string
 }
 
-export const Route = createFileRoute('/command')({
+export const commandRoute = createFileRoute('/command')({
   component: CommandPage,
 })
 
